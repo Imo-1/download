@@ -26,7 +26,7 @@ BOT_TOKEN = "ENTER BOT TOKEN "
 CHAT_ID = "ENTER CHATID NUMBER"
 
 # Custom Server URL
-SERVER_NAME = "redx-downloader"
+SERVER_NAME = "viddown"
 CUSTOM_URL = f"http://{SERVER_NAME}.local:5000"
 
 # Proxy APIs for Instagram
@@ -76,8 +76,8 @@ def add_console_log(message):
 
 class RedXDownloader:
     def __init__(self):
-        # استخدام مجلد مؤقت آمن للتشغيل السحابي إذا لم يتوفر مسار التخزين الداخلي
-        self.downloads_dir = "/tmp/RedX_Downloads" if not os.path.exists("/sdcard") else "/sdcard/Download/RedX_Downloads"
+        # استخدام مجلد مؤقت آمن للتشغيل السحابي لتجنب مشاكل الصلاحيات
+        self.downloads_dir = "/tmp/VidDown_Downloads" if not os.path.exists("/sdcard") else "/sdcard/Download/VidDown_Downloads"
         if not os.path.exists(self.downloads_dir):
             try:
                 os.makedirs(self.downloads_dir)
@@ -163,7 +163,7 @@ class RedXDownloader:
     def _download_instagram_with_proxy(self, task_id, url):
         try:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"RedX_Instagram_{timestamp}.mp4"
+            filename = f"VidDown_Instagram_{timestamp}.mp4"
             output_path = os.path.join(self.downloads_dir, filename)
             clean_url = url.split('?')[0]
             
@@ -189,11 +189,11 @@ class RedXDownloader:
             if isinstance(data, dict):
                 for key in ['url', 'video_url', 'download_url', 'media', 'link', 'video', 'hd', 'sd']:
                     if key in data:
-                        val = data[key]
-                        if isinstance(val, str) and 'http' in val:
-                            return val
-                        elif isinstance(val, dict) and 'url' in val:
-                            return val['url']
+                        value = data[key]
+                        if isinstance(value, str) and 'http' in value:
+                            return value
+                        elif isinstance(value, dict) and 'url' in value:
+                            return value['url']
             return None
         except:
             return None
@@ -222,18 +222,18 @@ class RedXDownloader:
         except Exception as e:
             return {'success': False, 'error': str(e)}
 
-    def _download_youtube_with_ytdlp(self, task_id, url, quality, format_type):
+    def _download_youtube_with_ytdlp(self, task_id, url, quality='best', format_type='mp4'):
         return self._download_with_ytdlp(task_id, url, quality, format_type, 'youtube')
-
+    
     def _download_tiktok_with_ytdlp(self, task_id, url):
         return self._download_with_ytdlp(task_id, url, 'best', 'mp4', 'tiktok')
-
+    
     def _download_facebook_with_ytdlp(self, task_id, url):
         return self._download_with_ytdlp(task_id, url, 'best', 'mp4', 'facebook')
-
-    def _download_generic_with_ytdlp(self, task_id, url, quality, format_type):
+    
+    def _download_generic_with_ytdlp(self, task_id, url, quality='best', format_type='mp4'):
         return self._download_with_ytdlp(task_id, url, quality, format_type, 'other')
-
+    
     def _download_with_ytdlp(self, task_id, url, quality='best', format_type='mp4', platform='unknown'):
         try:
             import shutil
@@ -242,7 +242,7 @@ class RedXDownloader:
                 return {'success': False, 'error': 'yt-dlp not installed'}
 
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            base_name = f"RedX_{platform}_{timestamp}"
+            base_name = f"VidDown_{platform}_{timestamp}"
             output_template = os.path.join(self.downloads_dir, base_name + '.%(ext)s')
 
             cmd = [ytdlp_bin, '--no-warnings', '-o', output_template, url]
@@ -272,27 +272,214 @@ downloader = RedXDownloader()
 
 @app.route('/')
 def index():
-    return '''<!DOCTYPE html><html><head><title>REDX DOWNLOADER</title></head><body style="background:#111;color:#fff;text-align:center;padding:50px;"><h1>🔥 REDX VIDEO DOWNLOADER</h1><p>Server is running successfully!</p></body></html>'''
+    return '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 VidDown - Video Downloader</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #000000 0%, #1a0000 25%, #2a0000 50%, #1a0000 75%, #000000 100%);
+            color: #ffffff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-x: hidden;
+        }
+        .container {
+            width: 100%; max-width: 800px; background: rgba(20, 0, 0, 0.95);
+            border-radius: 20px; padding: 30px; box-shadow: 0 20px 40px rgba(255, 0, 0, 0.3);
+            border: 2px solid rgba(255, 0, 0, 0.5);
+        }
+        .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid rgba(255, 0, 0, 0.5); }
+        .title {
+            font-family: 'Orbitron', monospace; font-size: 32px; font-weight: 900;
+            background: linear-gradient(45deg, #ff0000, #ff4444, #ff0000);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;
+        }
+        .subtitle { color: #ff8888; font-size: 14px; }
+        .brand { color: #ff0000; font-family: 'Orbitron', monospace; font-size: 12px; margin-top: 5px; letter-spacing: 2px; }
+        .url-section { margin: 25px 0; }
+        .url-input {
+            width: 100%; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 0, 0, 0.5);
+            border-radius: 10px; padding: 18px; font-size: 16px; color: white; margin-bottom: 20px; font-family: 'Rajdhani', sans-serif;
+        }
+        .url-input:focus { outline: none; border-color: #ff4444; box-shadow: 0 0 15px rgba(255, 0, 0, 0.5); }
+        .quality-section { margin: 20px 0; }
+        .quality-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
+        .quality-btn {
+            background: rgba(255, 0, 0, 0.1); border: 2px solid #550000; border-radius: 8px;
+            padding: 15px; color: white; text-align: center; cursor: pointer; transition: all 0.3s;
+        }
+        .quality-btn.active { background: rgba(255, 0, 0, 0.3); border-color: #ff0000; box-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
+        .download-btn {
+            width: 100%; background: linear-gradient(135deg, #ff0000, #cc0000, #ff0000);
+            border: none; border-radius: 10px; padding: 20px; color: white; font-family: 'Orbitron', monospace;
+            font-size: 18px; font-weight: bold; cursor: pointer; margin: 25px 0; box-shadow: 0 8px 25px rgba(255, 0, 0, 0.4); text-transform: uppercase;
+        }
+        .download-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status-message { background: rgba(255, 0, 0, 0.1); border-radius: 10px; padding: 15px; margin: 15px 0; text-align: center; display: none; border: 1px solid rgba(255, 0, 0, 0.3); }
+        .downloads-list { margin: 25px 0; max-height: 400px; overflow-y: auto; }
+        .download-item { background: rgba(255, 0, 0, 0.05); border-radius: 8px; padding: 15px; margin-bottom: 10px; border-left: 4px solid #ff0000; }
+        .download-filename { font-family: 'Orbitron', monospace; color: #ff4444; font-size: 14px; margin-bottom: 5px; word-break: break-all; }
+        .download-button {
+            background: linear-gradient(135deg, #ff0000, #cc0000); border: none; border-radius: 5px;
+            padding: 8px 15px; color: white; cursor: pointer; font-size: 12px; margin-top: 10px; font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🔥 VidDown</h1>
+            <p class="subtitle">YouTube • Instagram • TikTok • Facebook • 100+ Sites</p>
+            <p class="brand">POWERED BY REDX_64</p>
+        </div>
+        
+        <div class="url-section">
+            <input type="text" class="url-input" id="videoUrl" placeholder="🔗 Paste video URL here..." value="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
+        </div>
+        
+        <div class="quality-section">
+            <div style="color: #ff4444; margin-bottom: 10px; font-family: 'Orbitron', monospace;">SELECT QUALITY:</div>
+            <div class="quality-buttons">
+                <button class="quality-btn active" onclick="selectQuality('360p')">📱 360p</button>
+                <button class="quality-btn" onclick="selectQuality('720p')">📺 720p HD</button>
+                <button class="quality-btn" onclick="selectQuality('best')">👑 BEST</button>
+            </div>
+        </div>
+        
+        <button class="download-btn" id="downloadBtn" onclick="startDownload()">🔥 START DOWNLOAD</button>
+        
+        <div class="status-message" id="successMessage"></div>
+        <div class="status-message" id="errorMessage" style="color: #ff4444;"></div>
+        
+        <div class="downloads-list" id="downloadsList">
+            <div style="color: #ff4444; margin-bottom: 15px; font-family: 'Orbitron', monospace;">📂 RECENT DOWNLOADS:</div>
+            <div id="downloadItems"></div>
+        </div>
+    </div>
+    
+    <script>
+        let currentQuality = 'best';
+        let currentTaskId = null;
+        let pollInterval = null;
+        
+        function selectQuality(quality) {
+            currentQuality = quality;
+            document.querySelectorAll('.quality-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.includes(quality)) btn.classList.add('active');
+            });
+        }
+        
+        function startDownload() {
+            const url = document.getElementById('videoUrl').value.trim();
+            if (!url) { alert('Please enter a video URL'); return; }
+            
+            const downloadBtn = document.getElementById('downloadBtn');
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = '⏳ PROCESSING...';
+            
+            fetch('/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: url, quality: currentQuality, format: 'mp4' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    currentTaskId = data.task_id;
+                    startPollingProgress();
+                } else {
+                    alert('Error: ' + data.error);
+                    downloadBtn.disabled = false;
+                    downloadBtn.innerHTML = '🔥 START DOWNLOAD';
+                }
+            })
+            .catch(err => {
+                alert('Network error: ' + err);
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = '🔥 START DOWNLOAD';
+            });
+        }
+        
+        function startPollingProgress() {
+            if (pollInterval) clearInterval(pollInterval);
+            pollInterval = setInterval(() => {
+                fetch('/progress/' + currentTaskId)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'completed' || data.status === 'error') {
+                        clearInterval(pollInterval);
+                        handleDownloadComplete(data);
+                    }
+                });
+            }, 1500);
+        }
+        
+        function handleDownloadComplete(data) {
+            const downloadBtn = document.getElementById('downloadBtn');
+            downloadBtn.disabled = false;
+            downloadBtn.innerHTML = '🔥 START DOWNLOAD';
+            
+            if (data.success) {
+                const successMsg = document.getElementById('successMessage');
+                successMsg.innerHTML = `✅ DOWNLOAD SUCCESSFUL!<br>File: ${data.filename}<br>Size: ${data.size_mb} MB`;
+                successMsg.style.display = 'block';
+                addDownloadToList(data);
+            } else {
+                alert('Download failed: ' + (data.error || 'Unknown error'));
+            }
+        }
+        
+        function addDownloadToList(data) {
+            const downloadsList = document.getElementById('downloadItems');
+            const item = document.createElement('div');
+            item.className = 'download-item';
+            item.innerHTML = `
+                <div class="download-filename">📁 ${data.filename}</div>
+                <div style="font-size: 12px; color: #ff8888; margin-top: 5px;">Size: ${data.size_mb} MB</div>
+                <button class="download-button" onclick="window.open('/download_file/${encodeURIComponent(data.filename)}', '_blank')">⬇️ DOWNLOAD FILE</button>
+            `;
+            downloadsList.insertBefore(item, downloadsList.firstChild);
+        }
+    </script>
+</body>
+</html>
+'''
 
 @app.route('/download', methods=['POST'])
 def start_download():
-    data = request.json
-    url = data.get('url')
-    if not url:
-        return jsonify({'success': False, 'error': 'No URL provided'})
-    task_id = downloader.queue_download(url)
-    return jsonify({'success': True, 'task_id': task_id})
+    try:
+        data = request.json
+        url = data.get('url')
+        quality = data.get('quality', 'best')
+        format_type = data.get('format', 'mp4')
+        if not url:
+            return jsonify({'success': False, 'error': 'No URL provided'})
+        task_id = downloader.queue_download(url, quality, format_type)
+        return jsonify({'success': True, 'task_id': task_id})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/progress/<task_id>')
 def get_progress(task_id):
-    return jsonify(download_tasks.get(task_id, {'status': 'queued'}))
+    try:
+        return jsonify(download_tasks.get(task_id, {'status': 'queued'}))
+    except Exception as e:
+        return jsonify({'status': 'error', 'error': str(e)})
 
 @app.route('/download_file/<filename>')
 def download_file(filename):
-    filepath = os.path.join(downloader.downloads_dir, filename)
-    if os.path.exists(filepath):
-        return send_file(filepath, as_attachment=True)
-    return "File not found", 404
+    try:
+        filepath = os.path.join(downloader.downloads_dir, filename)
+        if os.path.exists(filepath):
+            return send_file(filepath, as_attachment=True)
+        return "File not found", 404
+    except Exception as e:
+        return str(e), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
